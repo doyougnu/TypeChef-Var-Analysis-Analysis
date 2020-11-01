@@ -14,6 +14,7 @@ data Row = Row { numClauses     :: !Int
                , numUnitClauses :: !Int
                , wasSat         :: !Bool
                , satTime        :: !Double
+               , phase          :: !Double
                } deriving (Show,Generic)
 
 instance ToField Bool where
@@ -29,6 +30,7 @@ doAnalysis = mapM makeRow . allProblems
 makeRow :: Proposition -> IO Row
 makeRow p = do let numClauses   = clauseCount   p
                    numVariables = variableCount p
+                   phase        = fromIntegral numClauses / fromIntegral numVariables
                    numUnitClauses = 0
                (wasSat, satTime) <- solve p
                return $ Row {..}
