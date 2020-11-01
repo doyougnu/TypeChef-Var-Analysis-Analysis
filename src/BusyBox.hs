@@ -8,6 +8,7 @@ import qualified System.Directory  as D
 
 import Text.Megaparsec (parse)
 import Data.Either     (lefts, rights)
+import Data.Maybe      (fromMaybe)
 
 import Logic
 import qualified Parser as P
@@ -51,10 +52,7 @@ data QueryMode = NoMode
 -- | don't feel like making the correct semigorup and monoid instances for maybe
 -- here
 get :: QueryMode -> Analysis -> [Proposition]
-get m ( getAnalysis -> a) = case m `M.lookup` a of
-                              Nothing -> mempty
-                              Just xs -> xs
-
+get m = fromMaybe mempty . M.lookup m . getAnalysis
 
 featureModel :: Analysis -> Proposition
 featureModel a = case get FeatureModel a of
@@ -73,10 +71,12 @@ typeChecking = get TypeChecking
 noMode :: Analysis -> [Proposition]
 noMode = get NoMode
 
+allProblems :: Analysis -> [Proposition]
+allProblems = mconcat . M.elems . getAnalysis
+
 dataFiles :: IO [Directory]
 dataFiles = fmap (Directory . (home </>)) <$> D.listDirectory home
   where home = "data/busybox/sat_queries"
-  -- where home = "/home/doyougnu/research/TypeChef-BusyboxAnalysis/sat_queries"
 
 readPropFile :: FilePath -> IO [Proposition]
 readPropFile f = do txtProblems <- T.lines <$> TIO.readFile f
@@ -139,17 +139,13 @@ mkAnalysis d = do putStrLn $ "Reading: " ++ unDir d
                     then do qs <- handlePlain d
                             return $! Analysis $! M.singleton NoMode qs
 
-                    else do fm <- M.singleton FeatureModel <$> readFM             d
-                            putStrLn "Got fm"
-                            pp <- M.singleton Parsing      <$> readParseProblems  d
-                            putStrLn "Got parsing"
-                            lp <- M.singleton Lexing       <$> readLexingProblems d
-                            putStrLn "Got lexing"
-                            tp <- M.singleton TypeChecking <$> readTcProblems     d
-                            putStrLn "Got type checking"
-                            np <- M.singleton NoMode       <$> readNoModeProblems d
-                            putStrLn "Got no mode"
-                            return $ Analysis $! mconcat [pp,lp,tp,np]
+                    else do fm <- readFM             d
+                            let theFM = M.singleton FeatureModel (pure fm)
+                            pp <- fmap (fm :) . M.singleton Parsing      <$> readParseProblems  d
+                            lp <- fmap (fm :) . M.singleton Lexing       <$> readLexingProblems d
+                            tp <- fmap (fm :) . M.singleton TypeChecking <$> readTcProblems     d
+                            np <- fmap (fm :) . M.singleton NoMode       <$> readNoModeProblems d
+                            return $ Analysis $! mconcat [theFM,pp,lp,tp,np]
 
 getProblems :: IO [Analysis]
 getProblems = dataFiles >>= mapM mkAnalysis . take 2

@@ -25,6 +25,7 @@ dependencies:
 - parser-combinators
 - cassava
 - text
+- bytestring
 - containers
 - mtl
 - unordered-containers
@@ -36,6 +37,8 @@ library:
 
 default-extensions:
   - ViewPatterns
+  - RecordWildCards
+  - DeriveGeneric
   - OverloadedStrings
   - BangPatterns
   - GeneralizedNewtypeDeriving
@@ -43,7 +46,7 @@ default-extensions:
   - DeriveFunctor
 
 executables:
-  tc-stats-exe:
+  tc-stats:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

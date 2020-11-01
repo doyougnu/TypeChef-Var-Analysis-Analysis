@@ -25,20 +25,18 @@ source-repository head
 
 library
   exposed-modules:
-      BruteForce
       BusyBox
-      Incremental
-      Lib
       Logic
-      Main
       Parser
+      Solve
   other-modules:
       Paths_tc_stats
   hs-source-dirs:
       src
-  default-extensions: ViewPatterns OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
+  default-extensions: ViewPatterns RecordWildCards DeriveGeneric OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , cassava
     , containers
     , directory
@@ -50,16 +48,17 @@ library
     , unordered-containers
   default-language: Haskell2010
 
-executable tc-stats-exe
+executable tc-stats
   main-is: Main.hs
   other-modules:
       Paths_tc_stats
   hs-source-dirs:
       app
-  default-extensions: ViewPatterns OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
+  default-extensions: ViewPatterns RecordWildCards DeriveGeneric OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , cassava
     , containers
     , directory
@@ -79,10 +78,11 @@ test-suite tc-stats-test
       Paths_tc_stats
   hs-source-dirs:
       test
-  default-extensions: ViewPatterns OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
+  default-extensions: ViewPatterns RecordWildCards DeriveGeneric OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , cassava
     , containers
     , directory

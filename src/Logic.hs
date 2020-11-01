@@ -3,6 +3,9 @@
 module Logic where
 
 import qualified Data.Text as T
+import qualified Data.Set  as S
+
+import Data.Foldable (foldr')
 
 -- | notice that you _can only_ create propositions in CNF
 data Clause' a = Ref !a
@@ -38,3 +41,11 @@ true = Proposition' . pure $ Lit True
 
 false :: Proposition
 false = Proposition' . pure $ Lit False
+
+clauseSize' :: Clause -> Int
+clauseSize' Ref {}     = 1
+clauseSize' (Negate e) = clauseSize' e
+clauseSize' (Or cs)    = foldr' (\x acc -> clauseSize' x + acc) 0 cs
+
+clauseSize :: Proposition -> S.Set Int
+clauseSize (getProp -> p) = S.fromList $ fmap clauseSize' p
