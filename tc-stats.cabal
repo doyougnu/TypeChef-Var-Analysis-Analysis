@@ -25,13 +25,29 @@ source-repository head
 
 library
   exposed-modules:
+      BruteForce
+      BusyBox
+      Incremental
       Lib
+      Logic
+      Main
+      Parser
   other-modules:
       Paths_tc_stats
   hs-source-dirs:
       src
+  default-extensions: ViewPatterns OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
   build-depends:
       base >=4.7 && <5
+    , cassava
+    , containers
+    , directory
+    , megaparsec
+    , mtl
+    , parser-combinators
+    , sbv
+    , text
+    , unordered-containers
   default-language: Haskell2010
 
 executable tc-stats-exe
@@ -40,10 +56,20 @@ executable tc-stats-exe
       Paths_tc_stats
   hs-source-dirs:
       app
+  default-extensions: ViewPatterns OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , cassava
+    , containers
+    , directory
+    , megaparsec
+    , mtl
+    , parser-combinators
+    , sbv
     , tc-stats
+    , text
+    , unordered-containers
   default-language: Haskell2010
 
 test-suite tc-stats-test
@@ -53,8 +79,18 @@ test-suite tc-stats-test
       Paths_tc_stats
   hs-source-dirs:
       test
+  default-extensions: ViewPatterns OverloadedStrings BangPatterns GeneralizedNewtypeDeriving DeriveAnyClass DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , cassava
+    , containers
+    , directory
+    , megaparsec
+    , mtl
+    , parser-combinators
+    , sbv
     , tc-stats
+    , text
+    , unordered-containers
   default-language: Haskell2010

@@ -1,12 +1,9 @@
 module Incremental where
 
-import qualified Data.Map.Strict         as M
-import qualified Control.Monad.State.Strict as St
-
-import           Gauge
 import           Data.Foldable           (foldr')
+import qualified Control.Monad.State.Strict as St
 import qualified Data.List               as L
-import           Data.Map                (size, Map, toList)
+import qualified Data.Map.Strict         as M
 import qualified Data.SBV                as S
 import qualified Data.SBV.Control        as SC
 import qualified Data.SBV.Internals      as SI
@@ -16,42 +13,36 @@ import qualified Data.Text.IO            as TIO
 import Numeric
 import Data.Char (intToDigit)
 
-
-import           Api
-import           CaseStudy.Auto.Auto
-import           CaseStudy.BusyBox.Parser (langParser)
-import           Config
-import           Opts
-import           Json
-import           Run                     (propToSBool, Name)
-import           Result
-import           Utils
-import           VProp.Core
-import           VProp.SBV               (toPredicate)
-import           VProp.Types
-
-import Core
+import Logic
 import BusyBox
 
-eval :: VProp T.Text (S.SBool, a) b -> S.SBool
-eval (LitB True)     = S.sTrue
-eval (LitB False)    = S.sFalse
-eval (RefB (b,_))    = b
-eval (OpB _ e)       = S.sNot $ eval e
-eval (OpBB And l r)  = (S..&&) (eval l) (eval r)
-eval (OpBB Or  l r)  = (S..||) (eval l) (eval r)
-eval (OpBB Impl l r) = (S..=>) (eval l) (eval r)
-eval (OpBB BiImpl l r) = (S..<=>) (eval l) (eval r)
-eval (ChcB {}) = error "no choices here!"
-eval (OpIB {}) = error "Type Chef throws smt problems?"
 
-  -- S.Symbolic (VProp d (S.SBool, Name) SNum) ->
-constructIncremental :: [Analysis Readable Readable] -> IO [[S.SatResult]]
+type Cache = St.State (M.Map T.Text S.SBool)
+
+new :: T.Text -> Cache S.SBool
+new v = do s <- St.get
+           case M.lookup v s of
+            Nothing -> do sym <- S.sBool $ T.unpack v
+                          St.modify (M.insert v sym)
+                          return sym
+            Just s  -> return s
+
+evalC :: Clause -> Cache S.SBool
+evalC (Lit True)  = return S.sTrue
+evalC (Lit False) = return S.sFalse
+evalC (Ref b)     = new b
+evalC (Negate e)  = S.sNot <$> evalC e
+evalC (Or xs)     = S.sOr  <$> mapM evalC xs
+
+eval :: Proposition -> Cache S.SBool
+eval = fmap S.sAnd . mapM evalC . getProp
+
+constructIncremental :: [Analysis] -> IO [S.SatResult]
 constructIncremental xs = S.runSMT $ do
-  let analysisToIncremental (getAnalysis -> a) = Analysis <$> mapM (mapM propToSBool) a
+  let analysisToIncremental (getAnalysis -> a) = Analysis <$> mapM eval a
 
-      symbolicAnalyses :: S.Symbolic [Analysis (S.SBool, Name) SNum]
-      symbolicAnalyses = St.evalStateT (mapM analysisToIncremental xs) (mempty,mempty)
+      symbolicAnalyses :: S.Symbolic [Analysis]
+      symbolicAnalyses = St.evalStateT (mapM analysisToIncremental xs) mempty
 
       doAnalysis analysis = do
         let !fm            = featureModel analysis

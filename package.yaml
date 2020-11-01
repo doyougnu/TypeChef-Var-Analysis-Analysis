@@ -22,14 +22,25 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - megaparsec
+- parser-combinators
 - cassava
 - text
 - containers
 - mtl
 - unordered-containers
+- sbv
+- directory
 
 library:
   source-dirs: src
+
+default-extensions:
+  - ViewPatterns
+  - OverloadedStrings
+  - BangPatterns
+  - GeneralizedNewtypeDeriving
+  - DeriveAnyClass
+  - DeriveFunctor
 
 executables:
   tc-stats-exe:
